@@ -1,0 +1,107 @@
+   <!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+
+    <title>AI Deteksi Ekspresi</title>
+</head>
+<body>
+
+    <h1>AI Deteksi Ekspresi Wajah</h1>
+
+    <p>
+        Gunakan kamera untuk mendeteksi ekspresi wajah.
+    </p>
+
+    <button onclick="mulaiKamera()">
+        Mulai Kamera
+    </button>
+ < div id="kamera"></div>
+
+    <div id="hasil"></div>
+    <script>
+
+    const URL = "./";
+
+    let model;
+    let webcam;
+
+    async function mulaiKamera() {
+
+        document.getElementById("hasil").innerHTML =
+            "Memuat model AI...";
+
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model = await tmImage.load(
+            modelURL,
+            metadataURL
+        );
+
+        document.getElementById("hasil").innerHTML =
+            "Model berhasil dimuat."; 
+        
+
+        webcam = new tmImage.Webcam(
+            300,
+            300,
+            true
+        );
+
+        await webcam.setup();
+
+        await webcam.play();
+
+        document
+            .getElementById("kamera")
+            .appendChild(webcam.canvas);
+
+        window.requestAnimationFrame(loop);
+    }
+
+
+    async function loop() {
+
+        webcam.update();
+
+        await prediksi();
+
+        window.requestAnimationFrame(loop);
+    }
+
+
+    async function prediksi() {
+
+        const prediction =
+            await model.predict(webcam.canvas);
+
+        let hasil = "";
+
+        for (let i = 0; i < prediction.length; i++) {
+
+            const nama =
+                prediction[i].className;
+
+            const nilai =
+                prediction[i].probability * 100;
+
+            hasil +=
+                nama + " : " +
+                nilai.toFixed(2) +
+                "%<br>";
+        }
+
+        document.getElementById("hasil").innerHTML =
+            hasil;
+    }
+
+</script>
+
+
+</body>
+
+</html>
